@@ -27,14 +27,15 @@ const (
 	defaultInterval             = 1440 // All
 	noDataMessage               = "does not have data for the selected query option(s)."
 
-	redditPlatform  = "Reddit"
-	twitterPlatform = "Twitter"
-	githubPlatform  = "GitHub"
-	youtubePlatform = "YouTube"
+	redditPlatform       = "Reddit"
+	twitterPlatform      = "Twitter"
+	githubPlatform       = "GitHub"
+	youtubePlatform      = "YouTube"
+	googleTrendsPlatform = "GoogleTrends"
 )
 
 var (
-	commStatPlatforms = []string{redditPlatform, twitterPlatform, githubPlatform, youtubePlatform}
+	commStatPlatforms = []string{redditPlatform, twitterPlatform, githubPlatform, youtubePlatform, googleTrendsPlatform}
 
 	exchangeTickIntervals = map[int]string{
 		-1:   "All",
@@ -1028,7 +1029,12 @@ func (s *Server) community(res http.ResponseWriter, req *http.Request) {
 	twitterHandle := req.FormValue("twitter-handle")
 	repository := req.FormValue("repository")
 	channel := req.FormValue("channel")
-
+	keyword := req.FormValue("keyword")
+	geolocations, _ := s.db.GoogleTrendOvertimeSearchedGeo(req.Context())
+	geolocation := ""
+	if len(geolocations) > 0 {
+		geolocation = geolocations[0]
+	}
 	page, _ := strconv.Atoi(pageStr)
 	if page < 1 {
 		page = 1
@@ -1058,6 +1064,10 @@ func (s *Server) community(res http.ResponseWriter, req *http.Request) {
 		channel = commstats.YoutubeChannels()[0]
 	}
 
+	if keyword == "" && len(commstats.GoogleTrendsKeywords()) > 0 {
+		keyword = commstats.GoogleTrendsKeywords()[0]
+	}
+
 	selectedNum, _ := strconv.Atoi(selectedNumStr)
 	if selectedNum == 0 {
 		selectedNum = 20
@@ -1085,6 +1095,10 @@ func (s *Server) community(res http.ResponseWriter, req *http.Request) {
 		"repository":       repository,
 		"channels":         commstats.YoutubeChannels(),
 		"channel":          channel,
+		"keywords":         commstats.GoogleTrendsKeywords(),
+		"keyword":          keyword,
+		"geo":              geolocation,
+		"geolocations":     geolocations,
 		"dataType":         dataType,
 		"currentPage":      page,
 		"pageSizeSelector": pageSizeSelector,
@@ -1180,6 +1194,29 @@ func (s *Server) getCommunityStat(resp http.ResponseWriter, req *http.Request) {
 		}
 
 		columnHeaders = append(columnHeaders, "Date", "Subscribers", "View Count")
+		break
+	case googleTrendsPlatform:
+		geolocations := make([]string, 0)
+		keyword := req.FormValue("keyword")
+		geolocation := req.FormValue("geo")
+		if geolocation == "" {
+			geolocations, err = s.db.GoogleTrendOvertimeSearchedGeo(req.Context())
+			if err == nil && len(geolocations) > 0 {
+				geolocation = geolocations[0]
+			}
+		}
+		stats, err = s.db.GoogleStatsInterestOverTimeByGeo(req.Context(), geolocation, keyword, offset, pageSize)
+		if err != nil {
+			s.renderErrorJSON(fmt.Sprintf("cannot fetch Google Trends stat, %s", err.Error()), resp)
+			return
+		}
+		totalCount, err = s.db.CountGoogleStatsInterestOverTime(req.Context(), keyword)
+		if err != nil {
+			s.renderErrorJSON(fmt.Sprintf("cannot fetch Google Trends stat, %s", err.Error()), resp)
+			return
+		}
+		columnHeaders = append(columnHeaders, "Date", "Formatted Time", "Value")
+		break
 	}
 
 	totalPages := totalCount / int64(pageSize)
@@ -1202,7 +1239,7 @@ func (s *Server) communityChat(resp http.ResponseWriter, req *http.Request) {
 	platform := req.FormValue("platform")
 	dataType := req.FormValue("data-type")
 
-	var yLabel, subAccount string
+	var yLabel, subAccount, keyword, geolocation string
 	switch platform {
 	case githubPlatform:
 		if dataType == models.GithubColumns.Folks {
@@ -1229,6 +1266,11 @@ func (s *Server) communityChat(resp http.ResponseWriter, req *http.Request) {
 			yLabel = "Subscribers"
 		}
 		subAccount = req.FormValue("channel")
+	case googleTrendsPlatform:
+		yLabel = "Value"
+		keyword = req.FormValue("keyword")
+		geolocation = req.FormValue("geo")
+		dataType = "value"
 	}
 
 	if dataType == "" {
@@ -1238,17 +1280,31 @@ func (s *Server) communityChat(resp http.ResponseWriter, req *http.Request) {
 
 	var dates, records cache.ChartUints
 	dateKey := fmt.Sprintf("%s-%s-%s-%s", cache.Community, platform, subAccount, cache.TimeAxis)
+	if platform == googleTrendsPlatform {
+		dateKey = fmt.Sprintf("%s-%s-%s-%s-%s", cache.Community, googleTrendsPlatform, keyword, geolocation, cache.TimeAxis)
+	}
+	fmt.Println("dateKey", dateKey)
 	if err := s.charts.ReadVal(dateKey, &dates); err != nil {
 		s.renderErrorJSON(fmt.Sprintf("Cannot fetch chart data, %s, %s", err.Error(), dateKey), resp)
 		return
 	}
 
 	dataKey := fmt.Sprintf("%s-%s-%s-%s", cache.Community, platform, subAccount, dataType)
+	if platform == googleTrendsPlatform {
+		dataKey = fmt.Sprintf("%s-%s-%s-%s-%s", cache.Community, googleTrendsPlatform, keyword, geolocation, cache.ValueAxis)
+	}
 	if err := s.charts.ReadVal(dataKey, &records); err != nil {
 		s.renderErrorJSON(fmt.Sprintf("Cannot fetch chart data, %s, %s", err.Error(), dataKey), resp)
 		return
 	}
-
+	/*
+		set := s.charts.Trim(dates, records)
+		s.renderJSON(map[string]interface{}{
+			"x":      set[0],
+			"y":      set[1],
+			"ylabel": yLabel,
+		}, resp)
+	*/
 	s.renderJSON(map[string]interface{}{
 		"x":      dates,
 		"y":      records,

@@ -24,6 +24,7 @@ const redditPlatform = 'Reddit'
 const twitterPlatform = 'Twitter'
 const githubPlatform = 'GitHub'
 const youtubePlatform = 'YouTube'
+const googleTrendPlatform = 'GoogleTrends'
 
 export default class extends Controller {
   viewOption
@@ -41,7 +42,7 @@ export default class extends Controller {
       'chartWrapper', 'chartsView', 'labels', 'tableWrapper', 'loadingData', 'messageView',
       'tableWrapper', 'table', 'rowTemplate', 'tableCol1', 'tableCol2', 'tableCol3',
       'platform', 'subreddit', 'subAccountWrapper', 'dataTypeWrapper', 'dataType',
-      'twitterHandle', 'repository', 'channel', 'zoomSelector', 'zoomOption'
+      'twitterHandle', 'repository', 'channel', 'zoomSelector', 'zoomOption', 'googleTrendKeyword', 'geo'
     ]
   }
 
@@ -83,6 +84,16 @@ export default class extends Controller {
     this.channel = this.channelTarget.dataset.initialValue
     if (this.channel === '' && this.channelTarget.options.length > 0) {
       this.channel = this.channelTarget.value = this.channelTarget.options[0].innerText
+    }
+
+    this.keyword = this.googleTrendKeywordTarget.dataset.initialValue
+    if (this.keyword === '' && this.googleTrendKeywordTarget.options.length > 0) {
+      this.keyword = this.googleTrendKeywordTarget.value = this.googleTrendKeywordTarget.options[0].innerText
+    }
+
+    this.geo = this.geoTarget.dataset.initialValue
+    if (this.geo === '' && this.geoTarget.options.length > 0) {
+      this.geo = this.geoTarget.value = this.geoTarget.options[0].innerText
     }
 
     this.dataType = this.dataTypeTarget.dataset.initialValue
@@ -149,6 +160,9 @@ export default class extends Controller {
         case twitterPlatform:
           keepSet = ['twitter-handle', ...tableParams]
           break
+        case googleTrendPlatform:
+          keepSet = ['keyword', 'geo', ...tableParams]
+          break
       }
     } else {
       var chartParams = ['zoom', ...baseSet]
@@ -164,6 +178,9 @@ export default class extends Controller {
           break
         case twitterPlatform:
           keepSet = ['twitter-handle', ...chartParams]
+          break
+        case googleTrendPlatform:
+          keepSet = ['keyword', 'geo', ...chartParams]
           break
       }
     }
@@ -199,6 +216,9 @@ export default class extends Controller {
     }
     if (this.channelTarget.options.length > 0) {
       this.channelTarget.value = this.channelTarget.options[0].value
+    }
+    if (this.googleTrendKeywordTarget.options.length > 0) {
+      this.googleTrendKeywordTarget.value = this.googleTrendKeywordTarget.options[0].value
     }
     if (this.dataTypeTarget.options.length > 0) {
       this.dataTypeTarget.value = this.dataTypeTarget.options[0].value
@@ -267,6 +287,38 @@ export default class extends Controller {
       this.fetchDataAndPlotGraph()
     }
     insertOrUpdateQueryParam('channel', this.channel, event.currentTarget.options[0].innerText)
+  }
+
+  keywordChanged (event) {
+    this.keyword = event.currentTarget.value
+    let defaultKeyword
+    if (event.currentTarget.options.length > 0) {
+      defaultKeyword = event.currentTarget.options[0].value
+    }
+    insertOrUpdateQueryParam('keyword', this.keyword, defaultKeyword)
+    this.currentPage = 1
+    if (this.viewOption === 'table') {
+      this.fetchData()
+    } else {
+      this.fetchDataAndPlotGraph()
+    }
+    insertOrUpdateQueryParam('keyword', this.keyword, event.currentTarget.options[0].innerText)
+  }
+
+  geoChanged (event) {
+    this.geo = event.currentTarget.value
+    let defaultGeo
+    if (event.currentTarget.options.length > 0) {
+      defaultGeo = event.currentTarget.options[0].value
+    }
+    insertOrUpdateQueryParam('geo', this.geo, defaultGeo)
+    this.currentPage = 1
+    if (this.viewOption === 'table') {
+      this.fetchData()
+    } else {
+      this.fetchDataAndPlotGraph()
+    }
+    insertOrUpdateQueryParam('geo', this.geo, event.currentTarget.options[0].innerText)
   }
 
   dataTypeChanged (event) {
@@ -344,14 +396,12 @@ export default class extends Controller {
     }
     insertOrUpdateQueryParam('page', this.currentPage, 1)
     this.fetchData()
-    insertOrUpdateQueryParam('page', this.nextPage, 1)
   }
 
   loadNextPage () {
     this.currentPage += 1
     insertOrUpdateQueryParam('page', this.currentPage, 1)
     this.fetchData()
-    insertOrUpdateQueryParam('page', this.nextPage, 1)
   }
 
   pageSizeChanged (event) {
@@ -364,7 +414,7 @@ export default class extends Controller {
     insertOrUpdateQueryParam('page', this.currentPage, 1)
     insertOrUpdateQueryParam('records-per-page', this.pageSize, defaultPageSize)
     this.fetchData()
-    insertOrUpdateQueryParam('records-per-page', this.selectedNumTarget.value, 20)
+    insertOrUpdateQueryParam('records-per-page', this.pageSizeTarget.value, 20)
   }
 
   fetchData () {
@@ -373,7 +423,7 @@ export default class extends Controller {
     const _this = this
     const queryString = `page=${_this.currentPage}&records-per-page=${this.pageSize}&view-option=` +
       `${_this.viewOption}&platform=${this.platform}&subreddit=${this.subreddit}&twitter-handle=${this.twitterHandle}` +
-      `&repository=${this.repository}&channel=${this.channel}`
+      `&repository=${this.repository}&channel=${this.channel}&keyword=${this.keyword}&geo=${this.geo}`
     axios.get(`/getCommunityStat?${queryString}`)
       .then(function (response) {
         hideLoading(_this.loadingDataTarget, elementsToToggle)
@@ -457,6 +507,9 @@ export default class extends Controller {
         case 'YouTube':
           _this.displayYoutubeData(stat, fields)
           break
+        case googleTrendPlatform:
+          _this.displayGoogleTrendsData(stat, fields)
+          break
       }
 
       _this.tableTarget.appendChild(exRow)
@@ -483,13 +536,19 @@ export default class extends Controller {
     fields[2].innerText = stat.view_count
   }
 
+  displayGoogleTrendsData (stat, fields) {
+    fields[1].innerHTML = stat.formatted_time
+    fields[2].innerText = stat.value
+  }
+
   fetchDataAndPlotGraph () {
     let elementsToToggle = [this.chartWrapperTarget]
     showLoading(this.loadingDataTarget, elementsToToggle)
 
     const _this = this
     const queryString = `data-type=${this.dataType}&platform=${this.platform}&subreddit=${_this.subreddit}` +
-      `&twitter-handle=${this.twitterHandle}&view-option=${this.viewOption}&repository=${this.repository}&channel=${this.channel}`
+      `&twitter-handle=${this.twitterHandle}&view-option=${this.viewOption}&repository=${this.repository}` +
+      `&channel=${this.channel}&keyword=${this.keyword}&geo=${this.geo}`
     _this.trimUrlParam()
 
     axios.get(`/communitychat?${queryString}`).then(function (response) {
@@ -509,7 +568,12 @@ export default class extends Controller {
 
   plotGraph (dataSet) {
     const _this = this
-
+    if (_this.chartsView) {
+     this.chartWrapperTarget.style.visibility = 'hidden'
+    }
+    if (dataSet.x === null) {
+      return
+    }
     let minDate, maxDate
     dataSet.x.forEach(unixTime => {
       let date = new Date(unixTime * 1000)
@@ -549,6 +613,7 @@ export default class extends Controller {
     } else {
       hide(this.zoomSelectorTarget)
     }
+    this.chartWrapperTarget.style.visibility = 'inherit'
   }
 
   selectedZoom () { return selectedOption(this.zoomOptionTargets) }

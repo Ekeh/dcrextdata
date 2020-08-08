@@ -4,11 +4,23 @@
     user = "user"
     pass = "pass"
     sslmode = "disable"
-    whitelist=["exchange", 
+    whitelist=[
+            "block",
+            "exchange",
             "exchange_tick",
+            "github",
+            "mempool",
+            "pow_data",
+            "reddit",
+            "twitter",
+            "vote",
             "vsp",
             "vsp_tick",
-            "pow_data",
-            "mempool",
-            "block",
-            "comm_stat"]
+            "youtube",
+            "node",
+            "network_snapshot",
+            "heartbeat",
+            "community_stat",
+            "googleinterestovertime",
+            "googleinterestbylocation"
+            ]

@@ -17,6 +17,8 @@ func (pg *PgDb) TableNames() []string {
 		models.TableNames.VSP,
 		models.TableNames.VSPTick,
 		models.TableNames.PowData,
+		models.TableNames.Googleinterestovertime,
+		models.TableNames.Googleinterestbylocation,
 	}
 }
 
@@ -49,6 +51,14 @@ func (pg *PgDb) LastEntry(ctx context.Context, tableName string, receiver interf
 		columnName = models.YoutubeColumns.Date
 	case models.TableNames.NetworkSnapshot:
 		columnName = models.NetworkSnapshotColumns.Timestamp
+		break
+	case models.TableNames.Googleinterestovertime:
+		columnName = models.GoogleinterestovertimeColumns.Date
+		break
+	case models.TableNames.Googleinterestbylocation:
+		columnName = models.GoogleinterestbylocationColumns.Date
+		break
+
 	}
 
 	rows := pg.db.QueryRow(fmt.Sprintf("SELECT %s FROM %s ORDER BY %s DESC LIMIT 1", columnName, tableName, columnName))

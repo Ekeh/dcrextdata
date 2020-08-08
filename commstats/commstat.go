@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/planetdecred/dcrextdata/app"
+	//"github.com/planetdecred/dcrextdata/app"
 	"github.com/planetdecred/dcrextdata/app/config"
 	"github.com/planetdecred/dcrextdata/cache"
 )
@@ -34,7 +34,7 @@ func (c *Collector) Run(ctx context.Context, cacheManager *cache.Manager) {
 	}
 
 	// continually check the state of the app until its free to run this module
-	app.MarkBusyIfFree()
+	/* app.MarkBusyIfFree()
 
 	log.Info("Fetching community stats...")
 
@@ -47,7 +47,9 @@ func (c *Collector) Run(ctx context.Context, cacheManager *cache.Manager) {
 	// github
 	go c.startGithubCollector(ctx, cacheManager)
 
-	go c.startRedditCollector(ctx, cacheManager)
+	go c.startRedditCollector(ctx, cacheManager) */
+
+	go c.startGoogleCollector(ctx)
 }
 
 func SetAccounts(options config.CommunityStatOptions) {

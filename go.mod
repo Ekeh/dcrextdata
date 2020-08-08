@@ -26,6 +26,11 @@ require (
 	github.com/spf13/viper v1.3.2
 	github.com/volatiletech/null v8.0.0+incompatible
 	github.com/volatiletech/sqlboiler v3.6.0+incompatible
+	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392 // indirect
+	golang.org/x/net v0.0.0-20190923162816-aa69164e4478 // indirect
+	golang.org/x/sys v0.0.0-20190924154521-2837fb4f24fe // indirect
+	github.com/json-iterator/go v1.1.10
+	github.com/pkg/errors v0.8.1
 )
 
 go 1.13

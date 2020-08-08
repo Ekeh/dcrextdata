@@ -212,7 +212,7 @@ func _main(ctx context.Context) error {
 		log.Error(err)
 	}
 
-	opt := badger.DefaultOptions("data")
+	opt := badger.DefaultOptions("data").WithTruncate(true)
 	bdb, err := badger.Open(opt)
 	if err != nil {
 		return err
@@ -541,6 +541,22 @@ func createTablesAndIndex(db *postgres.PgDb) error {
 			return err
 		}
 		log.Info("heartbeat table created successfully.")
+	}
+
+	if exists := db.GoogleTrendsInterestOverTimeTableExists(); !exists {
+		if err := db.CreateGoogleTrendsInterestOverTimeTable(); err != nil {
+			log.Errorf("Error creating %s table: %s", postgres.GoogleInterestOverTimeTableName, err.Error())
+			return err
+		}
+		log.Infof("%s table created successfully.", postgres.GoogleInterestOverTimeTableName)
+	}
+
+	if exists := db.GoogleTrendsInterestByLocationTableExists(); !exists {
+		if err := db.CreateGoogleTrendsInterestByLocationTable(); err != nil {
+			log.Errorf("Error creating %s table: %s", postgres.GoogleInterestByLocationTableName, err.Error())
+			return err
+		}
+		log.Infof("%s table created successfully.", postgres.GoogleInterestByLocationTableName)
 	}
 	return nil
 }

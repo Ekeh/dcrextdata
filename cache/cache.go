@@ -40,6 +40,7 @@ type axisType string
 const (
 	HeightAxis axisType = "height"
 	TimeAxis   axisType = "time"
+	ValueAxis      axisType = "value"
 
 	HashrateAxis axisType = "hashrate"
 	WorkerAxis   axisType = "workers"
@@ -1117,11 +1118,11 @@ func (charts *Manager) encodeArr(keys []string, sets []Lengther) ([]byte, error)
 	return json.Marshal(response)
 }
 
-// trim remove points that has 0s in all yAxis.
-func (charts *Manager) trim(sets ...Lengther) []Lengther {
-	if len(sets) == 2 {
+// Trim remove points that has 0s in all yAxis.
+func (charts *Manager) Trim(sets ...Lengther) []Lengther {
+	/* if len(sets) == 2 {
 		return sets
-	}
+	} */
 	dLen := sets[0].Length()
 	for i := dLen - 1; i >= 0; i-- {
 		var isZero bool = true
@@ -1365,7 +1366,7 @@ func MakePowChart(charts *Manager, dates ChartUints, deviations []ChartNullUints
 	for _, d := range deviations {
 		recs = append(recs, d)
 	}
-	recs = charts.trim(recs...)
+	recs = charts.Trim(recs...)
 	return charts.Encode(nil, recs...)
 }
 
@@ -1416,7 +1417,7 @@ func MakeVspChart(charts *Manager, dates ChartUints, deviations []ChartNullData,
 		recs = append(recs, d)
 	}
 
-	recs = charts.trim(recs...)
+	recs = charts.Trim(recs...)
 	return charts.Encode(nil, recs...)
 }
 

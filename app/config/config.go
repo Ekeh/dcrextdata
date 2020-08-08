@@ -42,7 +42,12 @@ const (
 	defaultTwitterStatInterval = 60 * 24
 	defaultGithubStatInterval  = 60 * 24
 	defaultYoutubeInterval     = 60 * 24
-
+	
+	defaultGoogleTrendsStatInterval       = 60 * 24
+	DefaultGoogleTrendTypeTrendOverTime   = "trendovertime"
+	DefaultGoogleTrendTypeTrendByLocation = "trendbylocation"
+	DefaultGoogleTrendTypeBoth            = "trendtypeboth"
+	DefaultGoogleTrendsGeolocation        = "US"
 	//dcrseeder
 	defaultSeeder            = "127.0.0.1"
 	defaultSeederPort        = 9108
@@ -61,11 +66,12 @@ var (
 	defaultConfigFilename = filepath.Join(defaultHomeDir, defaultConfigFileName)
 	defaultLogFilename    = filepath.Join(defaultHomeDir, "log", defaultLogFileName)
 
-	defaultSubreddits          = []string{"decred"}
-	defaultTwitterHandles      = []string{"decredproject"}
-	defaultGithubRepositories  = []string{"decred/dcrd", "decred/dcrdata", "decred/dcrwallet", "decred/politeia", "decred/decrediton"}
-	defaultYoutubeChannelNames = []string{"Decred"}
-	defaultYoutubeChannelId    = []string{"UCJ2bYDaPYHpSmJPh_M5dNSg"}
+	defaultSubreddits                 = []string{"decred"}
+	defaultTwitterHandles             = []string{"decredproject"}
+	defaultGithubRepositories         = []string{"decred/dcrd", "decred/dcrdata", "decred/dcrwallet", "decred/politeia", "decred/decrediton"}
+	defaultYoutubeChannelNames        = []string{"Decred"}
+	defaultYoutubeChannelId           = []string{"UCJ2bYDaPYHpSmJPh_M5dNSg"}
+	DefaultGoogleTrendsSearchKeywords = []string{"Decred", "Dcrwallet", "Politeia", "Decrediton"}
 )
 
 func defaultFileOptions() ConfigFileOptions {
@@ -91,7 +97,7 @@ func defaultFileOptions() ConfigFileOptions {
 		EnableChartCache: true,
 	}
 
-	cfg.RedditStatInterval = defaultRedditInterval
+	cfg.RedditStatInterval = defaultRedditInterval 
 	cfg.Subreddit = defaultSubreddits
 	cfg.TwitterStatInterval = defaultTwitterStatInterval
 	cfg.TwitterHandles = defaultTwitterHandles
@@ -104,6 +110,10 @@ func defaultFileOptions() ConfigFileOptions {
 	cfg.Seeder = defaultSeeder
 	cfg.SeederPort = defaultSeederPort
 	cfg.MaxPeerConnectionFailure = maxPeerConnectionFailure
+	cfg.GoogleTrendsStatInterval = defaultGoogleTrendsStatInterval
+	cfg.GoogleTrendType = DefaultGoogleTrendTypeTrendOverTime
+	cfg.GoogleTrendsGeolocation = DefaultGoogleTrendsGeolocation
+	cfg.GoogleTrendsSearchKeywords = DefaultGoogleTrendsSearchKeywords
 
 	return cfg
 }
@@ -179,17 +189,21 @@ type CommandLineOptions struct {
 
 type CommunityStatOptions struct {
 	// Community stat
-	DisableCommunityStat bool     `long:"disablecommstat" description:"Disables periodic community stat collection"`
-	RedditStatInterval   int64    `long:"redditstatinterval" description:"Collection interval for Reddit community stat"`
-	Subreddit            []string `long:"subreddit" description:"List of subreddit for community stat collection"`
-	TwitterHandles       []string `long:"twitterhandle" description:"List of twitter handles community stat collection"`
-	TwitterStatInterval  int      `long:"twitterstatinterval" description:"Number of minutes between Twitter stat collection"`
-	GithubRepositories   []string `long:"githubrepository" description:"List of Github repositories to track"`
-	GithubStatInterval   int      `long:"githubstatinterval" description:"Number of minutes between Github stat collection"`
-	YoutubeChannelName   []string `long:"youtubechannelname" description:"List of Youtube channel names to be tracked"`
-	YoutubeChannelId     []string `long:"youtubechannelid" description:"List of Youtube channel ID to be tracked"`
-	YoutubeStatInterval  int      `long:"youtubestatinterval" description:"Number of minutes between Youtube stat collection"`
-	YoutubeDataApiKey    string   `long:"youtubedataapikey" description:"Youtube data API key gotten from google developer console"`
+	DisableCommunityStat       bool     `long:"disablecommstat" description:"Disables periodic community stat collection"`
+	RedditStatInterval         int64    `long:"redditstatinterval" description:"Collection interval for Reddit community stat"`
+	Subreddit                  []string `long:"subreddit" description:"List of subreddit for community stat collection"`
+	TwitterHandles             []string `long:"twitterhandle" description:"List of twitter handles community stat collection"`
+	TwitterStatInterval        int      `long:"twitterstatinterval" description:"Number of minutes between Twitter stat collection"`
+	GithubRepositories         []string `long:"githubrepository" description:"List of Github repositories to track"`
+	GithubStatInterval         int      `long:"githubstatinterval" description:"Number of minutes between Github stat collection"`
+	YoutubeChannelName         []string `long:"youtubechannelname" description:"List of Youtube channel names to be tracked"`
+	YoutubeChannelId           []string `long:"youtubechannelid" description:"List of Youtube channel ID to be tracked"`
+	YoutubeStatInterval        int      `long:"youtubestatinterval" description:"Number of minutes between Youtube stat collection"`
+	YoutubeDataApiKey          string   `long:"youtubedataapikey" description:"Youtube data API key gotten from google developer console"`
+	GoogleTrendType            string   `long:"googletrendtype" description:"Type of Google trend to display"`
+	GoogleTrendsStatInterval   int      `long:"googletrendsinterval" description:"Number of minutes between Google Trends stat collection"`
+	GoogleTrendsGeolocation    string   `long:"googletrendsgeolocation" description:"Geolocation to search"`
+	GoogleTrendsSearchKeywords []string `long:"googletrendssearchkeywords" description:"Google trends keywords to search"`
 }
 
 type NetworkSnapshotOptions struct {

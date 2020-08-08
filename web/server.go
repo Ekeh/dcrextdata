@@ -69,7 +69,13 @@ type DataQuery interface {
 	CountGithubStat(ctx context.Context, repository string) (int64, error)
 	GithubStat(ctx context.Context, repository string, offset int, limit int) ([]commstats.Github, error)
 	CommunityChart(ctx context.Context, platform string, dataType string, filters map[string]string) ([]commstats.ChartData, error)
-
+	GoogleStatsInterestOverTime(ctx context.Context, keyword string, offtset int, limit int) ([]commstats.GoogleInterestOverTime, error)
+	GoogleStatsInterestOverTimeByGeo(ctx context.Context, geo string,  keyword string, offtset int, limit int) ([]commstats.GoogleInterestOverTime, error)
+	GoogleTrendOvertimeSearchedGeo(ctx context.Context) ([]string, error)
+	CountGoogleStatsInterestOverTime(ctx context.Context, keyword string) (int64, error)
+	GoogleStatsInterestByLocation(ctx context.Context, keyword string, offtset int, limit int) ([]commstats.GoogleInterestByLocation, error)
+	CountGoogleStatsInterestByLocation(ctx context.Context, keyword string) (int64, error)
+	
 	Snapshots(ctx context.Context, offset, limit int, forChart bool) ([]netsnapshot.SnapShot, int64, error)
 	SnapshotCount(ctx context.Context) (int64, error)
 	LastSnapshotTime(ctx context.Context) (timestamp int64)

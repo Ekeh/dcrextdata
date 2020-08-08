@@ -1,8 +1,13 @@
 package postgres
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
+	GoogleInterestOverTimeTableName   = "googleinterestovertime"
+	GoogleInterestByLocationTableName = "googleinterestbylocation"
+
 	createExchangeTable = `CREATE TABLE IF NOT EXISTS exchange (
 		id SERIAL PRIMARY KEY,
 		name TEXT NOT NULL,
@@ -178,6 +183,36 @@ const (
 		current_height INT8 NOT NULL,
 		PRIMARY KEY (timestamp, node_id)
 	);`
+
+	createGoogleTrendInterestOverTimeTable = `CREATE TABLE If NOT EXISTS ` + GoogleInterestOverTimeTableName + ` (
+		id SERIAL NOT NULL PRIMARY KEY,
+		geo VARCHAR(50) NOT NULL,
+		formatted_time VARCHAR(50) NOT NULL,
+		formatted_axis_time VARCHAR(50) NOT NULL,
+		value INT NOT NULL,
+		keyword VARCHAR(50) NOT NULL,
+		date timestamp NOT NULL
+	);`
+	createGoogleTrendInterestOverTimeTableIndexes = `CREATE INDEX geox_googleinterestovertime_geo
+		ON ` + GoogleInterestOverTimeTableName + ` ((lower(geo)));
+		CREATE INDEX keywordx_googleinterestovertime_keyword
+		ON ` + GoogleInterestOverTimeTableName + ` ((lower(keyword)));`
+
+	createGoogleTrendInterestByLocationTable = `CREATE TABLE If NOT EXISTS ` + GoogleInterestByLocationTableName + ` (
+		id SERIAL NOT NULL PRIMARY KEY,
+		geo VARCHAR(50) NOT NULL,
+		geo_code VARCHAR(50) NOT NULL,
+		geo_name VARCHAR(100) NOT NULL,
+		value INT NOT NULL,
+		max_value_index INT NOT NULL,
+		keyword VARCHAR(50) NOT NULL,
+		date timestamp NOT NULL
+	);`
+
+	createGoogleTrendInterestByLocationTableIndexes = `CREATE INDEX geox_googleinterestbylocation_geo
+		ON ` + GoogleInterestByLocationTableName + ` ((lower(geo)));
+		CREATE INDEX keywordx_googleinterestbylocation_keyword
+		ON ` + GoogleInterestByLocationTableName + ` ((lower(keyword)));`
 )
 
 func (pg *PgDb) CreateExchangeTable() error {
@@ -349,6 +384,28 @@ func (pg *PgDb) CreateHeartbeatTable() error {
 
 func (pg *PgDb) HeartbeatTableExists() bool {
 	exists, _ := pg.tableExists("heartbeat")
+	return exists
+}
+
+func (pg *PgDb) CreateGoogleTrendsInterestOverTimeTable() error {
+	_, err := pg.db.Exec(createGoogleTrendInterestOverTimeTable)
+	pg.db.Exec(createGoogleTrendInterestOverTimeTableIndexes)
+	return err
+}
+
+func (pg *PgDb) GoogleTrendsInterestOverTimeTableExists() bool {
+	exists, _ := pg.tableExists(GoogleInterestOverTimeTableName)
+	return exists
+}
+
+func (pg *PgDb) CreateGoogleTrendsInterestByLocationTable() error {
+	_, err := pg.db.Exec(createGoogleTrendInterestByLocationTable)
+	pg.db.Exec(createGoogleTrendInterestByLocationTableIndexes)
+	return err
+}
+
+func (pg *PgDb) GoogleTrendsInterestByLocationTableExists() bool {
+	exists, _ := pg.tableExists(GoogleInterestByLocationTableName)
 	return exists
 }
 

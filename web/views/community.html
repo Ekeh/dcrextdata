@@ -95,6 +95,36 @@
                             </div>
                         </div>
 
+                        <div class="chart-control-wrapper ml-1 d-none" data-target="commstat.subAccountWrapper" data-platform="GoogleTrends">
+                            <div class="chart-control-label">Keyword</div>
+                            <div class="chart-control control-div p-0">
+                               <select data-target="commstat.googleTrendKeyword" data-initial-value="{{.keyword}}"
+                                        data-action="change->commstat#keywordChanged" class="form-control mr-5"
+                                        style="width: 150px;">
+                                    {{$keyword := .keyword}}
+                                    {{ range $filter := .keywords}}
+                                        <option value="{{$filter}}" {{ if eq $filter $keyword}} selected {{ end }}>{{$filter}}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="chart-control-wrapper  p-0 ml-1 d-none" data-target="commstat.subAccountWrapper" data-platform="GoogleTrends">
+                            <div class="chart-control-label">Geolocation</div>
+                                <div class="chart-control control-div p-0">
+                                    <select data-target="commstat.geo" data-initial-value="{{.geo}}"
+                                            data-action="change->commstat#geoChanged" class="form-control mr-5"
+                                            style="width: 150px;">
+                                        {{$geo := .geo}}
+                                        {{ range $filter := .geolocations}}
+                                            <option value="{{$filter}}" {{ if eq $filter $keyword}} selected {{ end }}>{{$filter}}</option>
+                                        {{ end }}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                        </div>
+
                         <div class="chart-control-wrapper ml-1 d-none" data-target="commstat.dataTypeWrapper">
                             <div class="chart-control-label">Data Type</div>
                             <div class="chart-control control-div p-0">
