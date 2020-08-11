@@ -117,7 +117,7 @@ func (c *Collector) startGoogleCollectorInterestOverTime(ctx context.Context) {
 
 	registerStarter := func() {
 		// continually check the state of the app until its free to run this module
-		//app.MarkBusyIfFree()
+		app.MarkBusyIfFree()
 	}
 
 	registerStarter()
@@ -154,7 +154,7 @@ func (c *Collector) startGoogleCollectorInterestByLocation(ctx context.Context) 
 	}
 	registerStarter := func() {
 		// continually check the state of the app until its free to run this module
-		//app.MarkBusyIfFree()
+		app.MarkBusyIfFree()
 	}
 
 	registerStarter()

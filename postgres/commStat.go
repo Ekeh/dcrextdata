@@ -203,6 +203,14 @@ func (pg *PgDb) GithubStat(ctx context.Context, repository string, offtset int, 
 func (pg *PgDb) StoreGoogleStatsInterestOverTime(ctx context.Context, interestOverTime []commstats.GoogleInterestOverTime) error {
 	var err error
 	for _, item := range interestOverTime {
+		countExists, err := models.Googleinterestovertimes(
+			models.GoogleinterestovertimeWhere.Geo.EQ(item.Geo),
+			models.GoogleinterestovertimeWhere.FormattedAxisTime.EQ(item.FormattedAxisTime),
+			models.GoogleinterestovertimeWhere.Keyword.EQ(item.Keyword),
+		).Count(ctx, pg.db)
+		if err == nil && countExists > 0 {
+			continue
+		}
 		model := models.Googleinterestovertime{
 			ID:                item.Id,
 			Geo:               item.Geo,
@@ -556,19 +564,7 @@ func (pg *PgDb) fetchAppendGoogleTrendsChart(ctx context.Context, cacheManager *
 				return err
 			}
 			var dates, records cache.ChartUints
-			/* monthAbbr := map[string]string{
-				"Jan": "January",
-				"Jul": "July",
-			} */
 			for _, record := range results {
-				/* var dateStr string
-				dateSplited := strings.Split(record.FormattedAxisTime, " ")
-				if m, f := monthAbbr[dateSplited[0]]; f {
-					dateStr = fmt.Sprintf("%s %s %s", m, dateSplited[1], dateSplited[2])
-				} else {
-					dateStr = record.FormattedAxisTime
-				} */
-				//dateStr = "Feb 03, 2020"
 				date, err := time.Parse("Jan 2, 2006", record.FormattedAxisTime)
 				if err != nil {
 					return err
